@@ -1,0 +1,11 @@
+version: '3'
+services:
+  app: 
+
+  HID:
+    build: 
+    ports:
+      -"5000:5000"
+    image: "postgres: 14.3-alpine"
+
+  postgres:
