@@ -1,0 +1,292 @@
+openapi: 3.0.0
+servers:
+  # Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/rgutierrezdata/Banco_Regional/1.0.0
+info:
+  version: "1.0.0"
+  title: Banco Regional - Equaldata
+  description: Documento con la información en formato JSON a enviar mediante notificaciones. El objeto brinda la información de clientes inscritos para Banco Regional en el sistema ID-Pal.
+  
+tags:
+  - name: Client data collection from ID-Pal
+    description: Documents for developers, JSON object, every field marked with a red asterisk is required and must be received in a notification
+paths:
+  /get_client:
+    post:
+      tags:
+        - Developers
+      summary: Obtain all data from client webhook
+      operationId: get_client
+      description: Retrieve clients data from enrollment in ID-pal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                callbackUrl:
+                  type: string
+                  format: uri
+                  example: https://myserver.com/send/callback/here
+              required:
+                - callbackUrl
+      responses:
+        '200':
+          description: Data from the enrolled client
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Banco_Regional_JSON'
+components:
+  schemas:
+    Custom_Fields:
+      description: 'Custom fields for a particular customer'
+      required: 
+        - label
+        - value
+      properties:
+        label:
+          type: string
+          example: 'custom_field_name'
+          description: 'Name of the custom field'
+        value:
+          type: string
+          example: 'custom_field_value'
+          description: 'Value of the custom field'
+      type: object
+    Note:
+      description: 'JSON with note structure'
+      required:
+      - created_at
+      - id
+      - note
+      properties:
+        created_at:
+          type: string
+          example: '2022-05-31 18:58:45'
+          description: 'Issue date of the related note'
+        id:
+          type: integer
+          example: 351080
+          description: 'Unique identifier for the note'
+        note:
+          type: string
+          example: 'This is a note from the Business Representative or the Bank Verification Officer'
+          description: 'Note content'
+      type: object
+    Document:
+      description: JSON with document structure
+      properties:
+        document_type:
+          type: string
+          example: 'idcard-front-uncropped'
+          description: 'Type of the document submitted by the client'
+        encoding_scheme:
+          type: string
+          example: 'base64'
+          description: 'Always used base64 for each document'
+        image:
+          type: string
+          example: '/9j/4AAQSkZJRgABAQECWQJZAAD/2wBDAB ...'
+          description: 'Image encoded in base64 format'
+        image_content_type:
+          type: string
+          example: 'jpg'
+          description: 'Image''s file extension or format'
+      type: object
+      required:
+       - document_type
+       - encoding_scheme
+       - image
+       - image_content_type
+    Alert:
+      description: Array of JSON alerts
+      properties:
+        alert:
+          type: string
+          example: 'An alert with any evidence found in the document'
+      type: object
+    Banco_Regional_JSON:
+      description: 'JSON Object with the data for a customer'
+      properties:
+        account_id:
+          type: string
+          nullable: true
+          example: 'account # 123456'
+          description: 'Client''s account id'
+        business_representative:
+          type: string
+          example: 'Bank executive'
+          description: 'Business representative name or a bank''s officer'
+        client_details:
+          type: object
+          description: 'Object including personal details of the client'
+          required:
+           - address_one
+           - country_name
+           - country_of_birth
+           - date_of_birth
+           - email
+           - first_name
+           - id_card_expires
+           - last_name
+           - phone
+           - phone_country_code
+          properties:
+            address_one:
+              type: string
+              example: 'Street 1'
+              description: 'Client''s main address, this address is required'
+            address_two:
+              type: string
+              nullable: true
+              example: 'Street 2'
+              description: 'Client''s secondary address'
+            city:
+              type: string
+              nullable: true
+              example: 'Asunción'
+              description: 'Client''s place of residence'
+            country_name:
+              type: string
+              example: 'Paraguay'
+              description: 'Country associated with the submitted main document'
+            country_of_birth:
+              type: string
+              example: 'Venezuela'
+              description: 'Country of birth designated by the client'
+            custom_fields:
+              type: array
+              nullable: true
+              items: 
+                $ref: '#/components/schemas/Custom_Fields'
+              example: []
+            date_of_birth:
+              type: string
+              example: '1974-05-20'
+            email:
+              type: string
+              example: 'banco@regional.com'
+              description: 'client''s personal email'
+            first_name:
+              type: string
+              example: 'Jhon'
+            gender:
+              type: string
+              nullable: true
+              example: 'Male'
+            id_card_expires:
+              type: string
+              example: '2025-01-11 00:00:00'
+              description: 'Expiration date of the main submitted document, this date is retrieved from the document directly and is provided by ID-Pal application'
+            last_name:
+              type: string
+              example: 'Doe'
+            notes:
+              type: array
+              nullable: true
+              items: 
+                $ref: '#/components/schemas/Note'
+            passport_expires:
+              type: string
+              nullable: true
+              example: null
+              description: 'Field with paspport''s expiration date in case the main submitted document is a passport. If the main document is not a passport then this key will be null'
+            phone:
+              type: string
+              example: '0926-123456'
+            phone_country_code:
+              type: string
+              example: '+595'
+            postal_code:
+              type: string
+              nullable: true
+              example: '2060'
+        created_at:
+          type: string
+          example: 'Wed, 01 Jun 2022 00:45:37 GMT'
+          description: 'Date where the client was created in ID-Pal system'
+        documents:
+          description: 'Array with all the documents gathered from the client'
+          type: array
+          items: 
+            $ref: '#/components/schemas/Document'
+        language_code:
+          type: string
+          example: 'en'
+          description: 'Language used by the client when making the enrollment in ID-Pal'
+        profile_id:
+          type: integer
+          example: 2264
+          description: 'Profile ID used from the ID-Pal system for the enrollment'
+        profile_name:
+          type: string
+          example: 'Equaldata Workflow'
+          description: 'Profile name in the ID-Pal system'
+        registration_document:
+          description: 'Key information about the main document submitted by the client'
+          type: object
+          required:
+           - document_type
+           - document_type_issue_year
+           - document_unique_number
+           - expiration_date
+           - issue_date
+           - issue_type
+           - issuer_code
+           - personal_id_number
+           - place_of_birth
+          properties:
+            alerts:
+              type: array
+              nullable: true
+              items:
+                $ref: '#/components/schemas/Alert'
+            document_type:
+              type: string
+              example: 'idcard-front-uncropped'
+            document_type_issue_year:
+              type: integer
+              example: 7
+              description: 'Tells the amount of time passed since the issue of the document'
+            document_unique_number:
+              type: string
+              example: '85378124'
+              description: 'Main personal ID of the client''s document'
+            expiration_date:
+              type: string
+              example: '2025-05-10'
+            issue_date:
+              type: string
+              example: '2015-02-24'
+            issue_type:
+              type: string
+              example: 'Driver''s License'
+            issuer_code:
+              type: string
+              example: 'PRY'
+              description: 'Code of the country that issued the document submitted'
+            personal_id_number:
+              type: string
+              nullable: true
+              example: null
+            place_of_birth:
+              type: string
+              example: 'Asunción - Paraguay'
+        request_id:
+          type: string
+          example: 'Cx8hYkopTwR12S'
+          description: 'Unique identifier for the submitted customer, this field has troubleshooting purposes'
+      type: object
+      required:
+        - business_representative
+        - client_details
+        - created_at
+        - documents
+        - language_code
+        - profile_id
+        - profile_name
+        - registration_document
+        - request_id
